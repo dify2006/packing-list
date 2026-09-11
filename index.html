@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="執行李">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
+  <link rel="icon" type="image/png" href="./icon.png">
+  <title>執行李</title>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",Arial,sans-serif;background:#f3f4f6;color:#111827}
+    header{position:sticky;top:0;z-index:10;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:rgba(255,255,255,.95);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border-bottom:1px solid #e5e7eb}
+    header h1{margin:0;font-size:24px} header p{margin:5px 0 0;font-size:13px;color:#6b7280}
+    main{max-width:700px;margin:auto;padding:14px 14px 100px}
+    .category{background:white;border-radius:18px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+    .categoryHeader{display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer}
+    .icon{font-size:28px;width:42px;text-align:center}.titleArea{flex:1}.categoryTitle{font-size:19px;font-weight:700}.progressText{margin-top:4px;font-size:13px;color:#6b7280}
+    .arrow{font-size:20px;color:#9ca3af;transition:.2s}.category.open .arrow{transform:rotate(90deg)}
+    .progressBar{height:5px;background:#e5e7eb;margin:0 16px 12px;border-radius:99px;overflow:hidden}.progressFill{height:100%;background:#111827;transition:width .2s}
+    .items{display:none;border-top:1px solid #f0f0f0}.category.open .items{display:block}
+    .item{display:flex;align-items:center;min-height:54px;padding:8px 14px;border-bottom:1px solid #f1f2f4;gap:12px}.item:last-child{border-bottom:0}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:25px;height:25px;border:2px solid #c8ccd2;border-radius:8px;position:relative;flex-shrink:0}
+    input[type="checkbox"]:checked{background:#111827;border-color:#111827} input[type="checkbox"]:checked::after{content:"✓";color:#fff;font-size:18px;position:absolute;left:4px;top:-1px}
+    .itemText{flex:1;font-size:17px}.item.done .itemText{text-decoration:line-through;color:#9ca3af}.deleteBtn{border:0;background:transparent;color:#c9c9c9;font-size:19px;padding:6px 8px}
+    .addArea{display:flex;padding:12px;gap:8px;background:#fafafa}.addArea input{flex:1;min-width:0;font-size:16px;border:1px solid #d9dce1;border-radius:10px;padding:10px 12px;outline:none;background:#fff}
+    .addBtn{border:0;background:#111827;color:#fff;border-radius:10px;padding:8px 15px;font-size:15px;font-weight:600}.categoryActions{display:flex;gap:8px;padding:0 12px 12px;background:#fafafa}.smallBtn{flex:1;border:1px solid #ddd;background:#fff;border-radius:10px;padding:10px 6px;font-size:14px}
+    .footerActions{position:fixed;bottom:0;left:0;right:0;padding:10px 14px calc(env(safe-area-inset-bottom) + 10px);background:rgba(255,255,255,.95);border-top:1px solid #e5e7eb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .footerInner{display:flex;gap:10px;max-width:700px;margin:auto}.mainBtn{flex:1;border:0;border-radius:13px;padding:13px;font-size:15px;font-weight:600}.resetAll{background:#f3f4f6;color:#111}.collapseAll{background:#111827;color:#fff}
+  </style>
+</head>
+<body>
+<header><h1>🧳 執行李</h1><p id="overall">準備中...</p></header>
+<main id="app"></main>
+<div class="footerActions"><div class="footerInner"><button class="mainBtn resetAll" onclick="resetAll()">全部取消勾選</button><button class="mainBtn collapseAll" onclick="collapseAll()">全部收起</button></div></div>
+<script>
+const defaultData=[
+{id:"travel",title:"旅行",icon:"🧳",items:["黑超","浸浴 刷背","車牌 （國際及本地）","護照 證件","充電線包","飛機充電頭 、板夾","洗涮包","音樂播放 手制","底褲","襪","衫","褲","奶媽","毛巾","拖鞋","紙巾 乾 濕","防晒","保濕","耳機","相機叉電","蚊怕水","三腳架","現金","公數包","開瓶器","餐具","枕頭套 枕頭","牙刷","洗衫袋","交通卡","藥 、 筆","眼罩","耳塞","煮食煲（碗）","ESIM"]},
+{id:"ski",title:"滑雪",icon:"🎿",items:["Apple Watch","護具（臀、膝）","滑雪襪","手套","護目鏡","羽絨","滑雪褲","頸套","帽","頭盔","運動底衫"]},
+{id:"diving",title:"潛水",icon:"🤿",items:["蛙鞋","潛水鏡","呼吸管","潛水襪（潛水鞋）","潛水手錶","潛水手套","泳褲","水母衣","潛水衣","潛水相機（充電）","GO PRO","乾燥片","毛巾 斗篷","洗頭水 沐浴露","防晒","保濕","潛水扣","暈浪丸","防水袋","電筒","叮叮棒","咬嘴"]},
+{id:"drive",title:"自駕",icon:"🚗",items:["駕照（本地及國際）","充電線（白）","充電線（黑）","導航架","車can 架","車充","GoPro","太陽眼鏡","喇叭","遮太陽"]},
+{id:"mountain",title:"高山",icon:"🏔️",items:["血氧計 風筒","毛巾墊枕頭","牙刷 牙膏 牙刷杯","紙巾","膚膚水","保濕","太陽眼鏡","鬚刨","耳機","毛巾","拖鞋","航拍","奶媽"]},
+{id:"home",title:"關定時",icon:"🏠",items:["冷氣","熱水爐","電陶爐","Apple Watch"]}
+];
+const DATA_KEY="packing_app_data_v1",CHECK_KEY="packing_app_checks_v1";
+let data=loadData(),checks=loadChecks();
+function loadData(){const s=localStorage.getItem(DATA_KEY);if(s){try{return JSON.parse(s)}catch(e){}}const i=JSON.parse(JSON.stringify(defaultData));localStorage.setItem(DATA_KEY,JSON.stringify(i));return i}
+function loadChecks(){try{return JSON.parse(localStorage.getItem(CHECK_KEY))||{}}catch(e){return {}}}
+function saveData(){localStorage.setItem(DATA_KEY,JSON.stringify(data))} function saveChecks(){localStorage.setItem(CHECK_KEY,JSON.stringify(checks))}
+function checkId(c,i){return c+"_"+i} function escapeHtml(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function render(){const app=document.getElementById("app");app.innerHTML="";data.forEach(c=>{const box=document.createElement("section");box.className="category";box.id="category_"+c.id;const done=c.items.filter((_,i)=>checks[checkId(c.id,i)]).length;const pct=c.items.length?Math.round(done/c.items.length*100):0;box.innerHTML=`<div class="categoryHeader" onclick="toggleCategory('${c.id}')"><div class="icon">${c.icon}</div><div class="titleArea"><div class="categoryTitle">${c.title}</div><div class="progressText">已完成 ${done} / ${c.items.length}</div></div><div class="arrow">›</div></div><div class="progressBar"><div class="progressFill" style="width:${pct}%"></div></div><div class="items"><div class="itemList"></div><div class="addArea"><input id="new_${c.id}" placeholder="新增物品" onkeydown="if(event.key==='Enter'){addItem('${c.id}')}"/><button class="addBtn" onclick="addItem('${c.id}')">＋新增</button></div><div class="categoryActions"><button class="smallBtn" onclick="resetCategory('${c.id}')">取消全部勾選</button><button class="smallBtn" onclick="checkAll('${c.id}')">全部完成</button></div></div>`;app.appendChild(box);const list=box.querySelector(".itemList");c.items.forEach((item,i)=>{const id=checkId(c.id,i),row=document.createElement("div");row.className="item"+(checks[id]?" done":"");row.innerHTML=`<input type="checkbox" ${checks[id]?"checked":""} onchange="toggleItem('${c.id}',${i})"><div class="itemText">${escapeHtml(item)}</div><button class="deleteBtn" onclick="deleteItem('${c.id}',${i})">×</button>`;list.appendChild(row)})});updateOverall()}
+function toggleCategory(id){document.getElementById("category_"+id).classList.toggle("open")}
+function toggleItem(c,i){const id=checkId(c,i);checks[id]=!checks[id];saveChecks();const open=document.getElementById("category_"+c).classList.contains("open");render();if(open)document.getElementById("category_"+c).classList.add("open")}
+function addItem(c){const cat=data.find(x=>x.id===c),input=document.getElementById("new_"+c),text=input.value.trim();if(!text)return;cat.items.push(text);saveData();render();document.getElementById("category_"+c).classList.add("open")}
+function deleteItem(c,i){const cat=data.find(x=>x.id===c);if(!confirm("刪除「"+cat.items[i]+"」？"))return;cat.items.splice(i,1);rebuildChecks(c,i);saveData();saveChecks();render();document.getElementById("category_"+c).classList.add("open")}
+function rebuildChecks(c,del){const n={};Object.keys(checks).forEach(k=>{if(!k.startsWith(c+"_")){n[k]=checks[k];return}const i=Number(k.split("_").pop());if(i<del)n[k]=checks[k];if(i>del)n[checkId(c,i-1)]=checks[k]});checks=n}
+function resetCategory(c){const cat=data.find(x=>x.id===c);cat.items.forEach((_,i)=>delete checks[checkId(c,i)]);saveChecks();render();document.getElementById("category_"+c).classList.add("open")}
+function checkAll(c){const cat=data.find(x=>x.id===c);cat.items.forEach((_,i)=>checks[checkId(c,i)]=true);saveChecks();render();document.getElementById("category_"+c).classList.add("open")}
+function resetAll(){if(!confirm("取消全部分類所有勾選？"))return;checks={};saveChecks();render()}
+function collapseAll(){document.querySelectorAll(".category").forEach(el=>el.classList.remove("open"));window.scrollTo({top:0,behavior:"smooth"})}
+function updateOverall(){let total=0,done=0;data.forEach(c=>{total+=c.items.length;c.items.forEach((_,i)=>{if(checks[checkId(c.id,i)])done++})});document.getElementById("overall").textContent=`全部完成 ${done} / ${total}`}
+render();
+</script>
+</body>
+</html>
